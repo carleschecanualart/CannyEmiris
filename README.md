@@ -5,7 +5,7 @@ Greedy implementation of the Canny-Emiris formula as it was presented in "A Gree
 
 The matrix A has to represent the bounds of the supports 
 
-<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}'_i = \big\{ \sum_{j = 1}^n \lambda_j v_j \in \mathbb{Z}^n\, | \quad \lambda_j \in \mathbb{Z}, \quad 0  \leq \lambda_j \leq a_{ij}\big\}."> 
+<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}'_i = \big\{ \sum_{j = 1}^n \lambda_j v_j \in \mathbb{Z}^n\, | \quad \lambda_j \in \mathbb{Z}, \quad 0  \leq \lambda_j \leq a_{ij}\big\}">
 while the columns of the matrix H represent the line segments defining the zonotope. The program will compute also the exponent <img src="https://render.githubusercontent.com/render/math?math=det(H)"> that appears in <img src="https://render.githubusercontent.com/render/math?math=\Res_{\mathcal{A}'} = \Res_{\mathcal{A}}^{|det(H)|}"> where 
 
 <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}_i = \big\{(b_j)_{j = 1,\dots,n} \in \mathbb{Z}^n \quad | \quad 0 \leq b_j \leq a_{ij} \big\} \quad i = 0,\dots,n"> 
@@ -56,16 +56,19 @@ julia> D
 2×2 Matrix{SymPy.Sym}:
  (u_{2, [0, 0]})  (u_{2, [1, 1]})
  (u_{1, [0, 0]})  (u_{1, [1, 1]})
-	```
+````
+
+The program will return an error if the matrices do not shape to the system or if H does not correspond to an n-zonotope. It will also return an error if the entries of A are not ordered.
+ 	
+## Multihomogeneous systems 
 	
-## Zonotopes 
+Let now N represent the vector of n_1,...n_s in a multihomogeneous system in <img src="https://render.githubusercontent.com/render/math?math=\mathbb{P}^{n_1} \times \dots \times \mathbb{P}^{n_s}"> and let D be a matrix whose columns are the multidegrees of the polynomials of the system. 
 	
-	Let now N represent the vector of n_1,...n_s in a multihomogeneous system in <img src="https://render.githubusercontent.com/render/math?math=\mathbb{P}^{n_1} \times \dots \times \mathbb{P}^{n_s}"> and let D be a matrix whose columns are the multidegrees of the polynomials of the system. 
+CannyEmiris.Zonotopes(D::Matrix,N::Vector) writes the rows of the Canny-Emiris matrix and returns two symbolic matrices which are the Canny-Emiris matrix and its principal minor.
 	
-	CannyEmiris.Zonotopes(D::Matrix,N::Vector) writes the rows of the Canny-Emiris matrix and returns two symbolic matrices which are the Canny-Emiris matrix and its principal minor.
-	
-	```julia
-	julia> D
+```julia
+
+julia> D
 1×3 Matrix{Int64}:
  2  2  1
 
@@ -105,7 +108,10 @@ julia> CE
 julia> PM
 1×1 Matrix{SymPy.Sym}:
  (u_{2, [0, 0]})
-	````
+ 
+ ````
+ 
+ Here after
 	
 	
 	
