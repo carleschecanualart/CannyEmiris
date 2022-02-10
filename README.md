@@ -3,9 +3,17 @@ Greedy implementation of the Canny-Emiris formula as it was presented in "A Gree
 
 ## Zonotopes 
 
-The matrix A has to represent the bounds of the supports 
+Let <img src="https://render.githubusercontent.com/render/math?math=v_1,\dots,v_n \in M"> be independent vectors generating an n-zonotope. The supports of our zonotopes are: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}'_i = \big\{ \sum_{j = 1}^n \lambda_j v_j \in \mathbb{Z}^n\, | \quad \lambda_j \in \mathbb{Z}, \quad 0  \leq \lambda_j \leq a_{ij}\big\}">
+<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}_i^' = \big\{ \sum_{j = 1}^n \lambda_j v_j \in \mathbb{Z}^n\, | \quad \lambda_j \in \mathbb{Z}, \quad 0  \leq \lambda_j \leq a_{ij}\big\}">
+
+for some <img src="https://render.githubusercontent.com/render/math?math=a_{i,j} \quad i = 0,\dots,n \quad j = 1,\dots,s">. Let V be the <img src="https://render.githubusercontent.com/render/math?math=n \times n"> matrix whose columns are <img src="https://render.githubusercontent.com/render/math?math=v_1,\dots,v_n"> and let A be the matrix whose entries are the <img src="https://render.githubusercontent.com/render/math?math=a_{i,j}">.
+
+The function CannyEmiris.Zonotopes receives these two matrices and returns two symbolic matrices <img src="https://render.githubusercontent.com/render/math?math=\mathcal{H}_{\mathcal{A},\rho},\mathcal{E}_{\mathcal{A},\rho}"> which correspond to the rational formula for the sparse resultant:
+
+<img src="https://render.githubusercontent.com/render/math?math=Res_{\mathcal{A}} = \frac{det(\mathcal{H}_{\mathcal{A},\rho})}{det(\mathcal{E}_{\mathcal{A},\rho})}">
+
+
 while the columns of the matrix H represent the line segments defining the zonotope. The program will compute also the exponent <img src="https://render.githubusercontent.com/render/math?math=det(H)"> that appears in <img src="https://render.githubusercontent.com/render/math?math=\Res_{\mathcal{A}'} = \Res_{\mathcal{A}}^{|det(H)|}"> where 
 
 <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}_i = \big\{(b_j)_{j = 1,\dots,n} \in \mathbb{Z}^n \quad | \quad 0 \leq b_j \leq a_{ij} \big\} \quad i = 0,\dots,n"> 
@@ -111,7 +119,7 @@ julia> PM
  
  ````
  
- Here after
+## Other functions to call
 	
 	
 	
