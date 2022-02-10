@@ -16,7 +16,7 @@ for some <img src="https://render.githubusercontent.com/render/math?math=a_{i,j}
 
 The function CannyEmiris.Zonotopes receives these two matrices and returns two symbolic matrices <img src="https://render.githubusercontent.com/render/math?math=\mathcal{H}_{\mathcal{G}},\mathcal{E}_{\mathcal{G}}"> which correspond to the rational formula for the sparse resultant:
 
-<img src="https://render.githubusercontent.com/render/math?math=Res_{\mathcal{A}} = \big(\frac{det(\mathcal{H}_{\mathcal{A},\rho})}{det(\mathcal{E}_{\mathcal{A},\rho})}\big)^{det(V)}">
+<img src="https://render.githubusercontent.com/render/math?math=Res_{\mathcal{A}} = \big(\frac{det(\mathcal{H}_{\mathcal{G}})}{det(\mathcal{E}_{\mathcal{G}})}\big)^{det(V)}">
 
 which follows from Theorem 1.1 and Corollary 3.1 on the text. 
 
