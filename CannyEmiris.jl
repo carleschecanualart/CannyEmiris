@@ -1,7 +1,5 @@
 module CannyEmiris
 
-export GenerateTypeFunctions, ParseMultihomogeneousEmbedding, BuildLatticeToVarZonotopes, BuildLatticeToVarMultihomogeneous, CheckMatrices
-export RowsCannyEmiris, Zonotopes, CannyEmirisMultihomogeneous
 
 using LinearAlgebra
 using SymPy
@@ -103,15 +101,24 @@ function BuildLatticeToVarZonotopes(A::Matrix, H::Matrix)
 end
 
 function CheckMatrices(A::Matrix, H::Matrix)
-    if (size(A)[1] != size(H)[1] || size(A)[1] != (size(A)[2] - 1)) return false end
+    if (size(A)[1] != size(H)[1] || size(A)[1] != (size(A)[2] - 1))
+        println("The matrix of the a_{i,j} does not have the correct dimensions")
+        return false
+    end
 
 
-    if (size(H)[1] != size(H)[2] ||det(H) == 0) return false end
+    if (size(H)[1] != size(H)[2] ||det(H) == 0)
+        println("The vectors do not correspond to an n-zonotope.")
+        return false
+    end
+
     n = size(A)[1]
 
     for j in 1:n
         for i in 1:n-1
-            if (A[j,i] > A[j,i+1]) return false
+            if (A[j,i] > A[j,i+1])
+                println("The matrix of the a_{i,j} does not satisfy a_{i-1,j} <= a_{i,j}")
+                return false
             end
         end
     end
@@ -168,7 +175,7 @@ end
 
 ## Get the matrix H corresponding to the zonotope in which you embedded the previous system
 
-function ParseMultihomogeneousEmbedding(MULTI_A::Matrix{Int64}, MULTI_N::Vector{Int64})
+function MultihomogeneousEmbedding(MULTI_A::Matrix{Int64}, MULTI_N::Vector{Int64})
 
     v = ones(Int64, MULTI_N[1])
     w = -ones(Int64, MULTI_N[1] - 1)
@@ -215,6 +222,8 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
 
     non_mixed_indices = []
 
+    println("The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: ")
+
     n = size(A)[1]
 
     p = TypeFunctions(collect(0:n), n)
@@ -230,7 +239,11 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
     end
 
     if (length(LatticeToVar) == 0)
-        return nothing
+        return RowToLattice,
+            RowToContent,
+            non_mixed_indices,
+            number_of_rows,
+            LatticeToVar
     end
 
     for x in p
@@ -265,7 +278,6 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
         end
 
         v = Iterators.product(base...)
-
 
         for latticepoint in v
             if (ZM == 1 || (all(>=(1), H * [latticepoint...]) == true))
@@ -310,9 +322,15 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
 
     println()
 
-    print("The exponent of difference between this resultant and the one given by the canonical basis of Z^n is: ")
+    if (ZM == 1)
 
-    println(det(H))
+        print("The sparse resultant is the ratio of the determinants of the returned matrices to the power ")
+
+        println(det(H))
+
+        println()
+
+    end
 
     return RowToLattice,
     RowToContent,
@@ -325,8 +343,7 @@ end
 function Zonotopes(A::Matrix, H::Matrix)
 
     if (CheckMatrices(A,H) == false)
-        println("The matrices do not satisfy the bound or dimension restrictions imposed from the greedy algorithm measure.")
-        return nothing
+        return Dict([]), Dict([])
     end
 
     RowToLattice,
@@ -335,7 +352,6 @@ function Zonotopes(A::Matrix, H::Matrix)
     number_of_rows,
     LatticeToVar = RowsCannyEmiris(A, H, 1)
 
-    if (RowToLattice == false) return nothing end
 
     n = size(A)[1]
 
@@ -370,11 +386,11 @@ end
 
 function Multihomogeneous(A::Matrix, H::Vector)
 
-    A, H = ParseMultihomogeneousEmbedding(A, H)
+    A, H = MultihomogeneousEmbedding(A, H)
 
     if (CheckMatrices(A,H) == false)
         println("The matrices do not satisfy the bound or dimension restrictions imposed from the greedy algorithm measure.")
-        return nothing
+        return Dict([]), Dict([])
     end
 
     n = size(A)[1]
