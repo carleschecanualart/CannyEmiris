@@ -202,7 +202,7 @@ julia> CannyEmiris.MultihomogeneousEmbedding(D,N)
  
 The function CannyEmiris.GenerateTypeFunctions(n::Int) constructs the iterator that produces all the type functions <img src="https://render.githubusercontent.com/render/math?math=\varphi:\{1,\dots,n\} \xrightarrow{} \{0,\dots,n\}"> satisfying the condition on the greedy subset <img src="https://render.githubusercontent.com/render/math?math=\mathcal{G}">:
 
-<img src="https://render.githubusercontent.com/render/math?math=\sum_{i = 0}^I t_{b,i} \leq I {+}">  <img src="https://render.githubusercontent.com/render/math?math=1 \quad \forall I < n."> where <img src="https://render.githubusercontent.com/render/math?math=t_{b,i} = |\varphi^{-1}(i)|">
+<img src="https://render.githubusercontent.com/render/math?math=\sum_{i = 0}^{I-1} t_{b,i} \leq I \quad \forall I = 1,\dots,n"> where <img src="https://render.githubusercontent.com/render/math?math=t_{b,i} = |\varphi^{-1}(i)|">
 
 ```julia
 
