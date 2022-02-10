@@ -177,7 +177,7 @@ julia> PM
  
 ## Other functions to call
 
-### MultihomogeneousEmbedding
+· MultihomogeneousEmbedding
 	
 The function CannyEmiris.MultihomogeneousEmbedding(MULTI_A::Matrix{Int64}, MULTI_N::Vector{Int64})) builds the embedding of the multihomogeneous system into a zonotope system. This system is given by the supports:
 
@@ -198,7 +198,7 @@ julia> CannyEmiris.MultihomogeneousEmbedding(D,N)
  
  ````
  
- ### GenerateTypeFunctions
+ · GenerateTypeFunctions
  
 The function CannyEmiris.GenerateTypeFunctions(n::Int) constructs the iterator that produces all the type functions <img src="https://render.githubusercontent.com/render/math?math=\varphi:\{1,\dots,n\} \xrightarrow{} \{0,\dots,n\}"> satisfying the condition on the greedy subset <img src="https://render.githubusercontent.com/render/math?math=\mathcal{G}">:
 
