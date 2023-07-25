@@ -1,8 +1,8 @@
 module CannyEmiris
 
-
 using LinearAlgebra
 using SymPy
+using DynamicPolynomials
 
 struct TypeFunctions{T}
     a::T
@@ -15,6 +15,27 @@ const typefunctions(elements::T, len::Integer, rc::Integer) where {T} =
 Base.IteratorSize(::TypeFunctions) = Base.HasLength()
 Base.length(p::TypeFunctions) = length(p.a)^p.t
 Base.eltype(::TypeFunctions{T}) where {T} = T
+
+
+function PolyToDict(f::Vector)
+    
+    ToDict = Dict([])
+    
+    for i in 1:length(f)
+        for x in terms(f[i])
+            
+            
+            
+            
+            ToDict = merge(
+                ToDict,
+                Dict([(vcat([i-1], exponents(x)), coefficients(x)[1] )]),
+            )
+        end
+    end
+        
+    return ToDict
+end
 
 
 function Base.iterate(p::TypeFunctions, s = [n for n = 1:p.t])
@@ -100,6 +121,7 @@ function BuildLatticeToVarZonotopes(A::Matrix, H::Matrix)
 
 end
 
+
 function CheckMatrices(A::Matrix, H::Matrix)
     if (size(A)[1] != size(H)[1] || size(A)[1] != (size(A)[2] - 1))
         println("The matrix of the a_{i,j} does not have the correct dimensions")
@@ -158,6 +180,61 @@ function BuildLatticeToVarMultihomogeneous(A::Matrix, H::Matrix)
     return LatticeToVar
 end
 
+
+function BuildLatticeToVarImplicitization(A::Matrix, H::Matrix, Vals::Vector)
+
+    n = size(A)[1]
+
+    LatticeToVar = Dict([])
+
+    if (size(A)[2] != n + 1 || size(H)[1] != n || size(H)[2] != n)
+        return LatticeToVar = Dict([])
+    end
+
+    SymMatrix = zeros(Sym, n, n)
+
+    for i = 1:n+1
+        local base = ntuple(j -> (0:A[j, i]), n)
+        v = Iterators.product(base...)
+        for x in v
+            p = [j + 1 for j in x]
+            if (p == [1,1] && Vals[i][p[1],:][p[2]] > 0)
+                coeff = symbols(
+                    "X" * string(i) * "-" * string(Vals[i][p[1],:][p[2]]),
+                )
+            end
+        
+            if (p == [1,1] && Vals[i][p[1],:][p[2]] == 0)
+                coeff = symbols(
+                    "X" * string(i),
+                )
+            end
+            
+            if (p == [1,1] && Vals[i][p[1],:][p[2]] < 0)
+                coeff = symbols(
+                    "X" * string(i) * "+" * string(-Vals[i][p[1],:][p[2]]),
+                )
+            end
+            
+            if (p != [1,1])
+                coeff = symbols(
+                    string(Vals[i][p[1],:][p[2]]),
+                )
+            end
+            var = coeff
+            LatticeToVar = merge(
+                LatticeToVar,
+                Dict([(vcat([i - 1], H*[j for j in x]), var)]),
+            )
+        end
+    end
+    
+    println(LatticeToVar)
+
+    return LatticeToVar
+
+end
+
 function BoundMatrix(A::Matrix) ## This function calculates all the partial sums \sum_{i = 0}^{I-1}a_{ij} that define the type functions
 
     n = size(A)[1]
@@ -204,11 +281,7 @@ function MultihomogeneousEmbedding(MULTI_A::Matrix{Int64}, MULTI_N::Vector{Int64
 
 end
 
-## This procedure writes the rows of the Canny-Emiris matrix corresponding to G.
-## At the end writes the size of the matrix with subdivision, the size of the greedy matrix and the resultant degree
-## The determinant of H corresponds to the difference between our resultant and the canonical
-
-function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
+function RowsCannyEmirisSpecial(A::Matrix, H::Matrix, ZM::Int, Vals::Vector, verbose, ToDict::Dict)
 
     LatticeToVar = Dict([])
 
@@ -222,7 +295,7 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
 
     non_mixed_indices = []
 
-    println("The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: ")
+    if (verbose) println("The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: ") end
 
     n = size(A)[1]
 
@@ -231,11 +304,11 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
     B = BoundMatrix(A)
 
     if (ZM == 1)
-        LatticeToVar = BuildLatticeToVarZonotopes(A, H)
+        LatticeToVar = ToDict
     end
 
     if (ZM == 2)
-        LatticeToVar = BuildLatticeToVarMultihomogeneous(A, H)
+        LatticeToVar = ToDict
     end
 
     if (length(LatticeToVar) == 0)
@@ -276,7 +349,11 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
         if (ZM == 2)
             base = ntuple(i -> (B[i, x[i]+1]+1:B[i, x[i]+2]), n)
         end
-
+        
+        if (ZM == 3)
+            base = ntuple(i -> (B[i, x[i]+1]+1:B[i, x[i]+2]), n)
+        end
+        
         v = Iterators.product(base...)
 
         for latticepoint in v
@@ -300,29 +377,35 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
                     resultant_degree += 1
                 end
 
-                print(H * [latticepoint...])
-                print("-> x^")
-                print(H * ([latticepoint...] - a))
-                print("*F_")
-                println(ib)
-
+                if (verbose) 
+                    print(H * [latticepoint...])
+                    print("-> x^")
+                    print(H * ([latticepoint...] - a))
+                    print("*F_")
+                    println(ib)
+                
+                end
+                        
             end
 
         end
 
     end
 
-    println()
-    print("The size of the greedy Canny-Emiris matrix is: ")
-    println(number_of_rows)
+    if (verbose)
+        println()
+        print("The size of the greedy Canny-Emiris matrix is: ")
+        println(number_of_rows)
 
-    print("The degree of the resultant is: ")
+        print("The degree of the resultant is: ")
 
-    println(resultant_degree)
+        println(resultant_degree)
 
-    println()
+        println()
+    
+    end
 
-    if (ZM == 1)
+    if (ZM == 1 && verbose)
 
         print("The sparse resultant is the ratio of the determinants of the returned matrices to the power ")
 
@@ -340,7 +423,157 @@ function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int)
 
 end
 
-function Zonotopes(A::Matrix, H::Matrix)
+## This procedure writes the rows of the Canny-Emiris matrix corresponding to G.
+## At the end writes the size of the matrix with subdivision, the size of the greedy matrix and the resultant degree
+## The determinant of H corresponds to the difference between our resultant and the canonical
+
+function RowsCannyEmiris(A::Matrix, H::Matrix, ZM::Int, Vals::Vector, verbose)
+
+    LatticeToVar = Dict([])
+
+    number_of_rows = 0
+
+    resultant_degree = 0
+
+    RowToLattice = Dict([])
+
+    RowToContent = Dict([])
+
+    non_mixed_indices = []
+
+    if (verbose) println("The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: ") end
+
+    n = size(A)[1]
+
+    p = TypeFunctions(collect(0:n), n)
+
+    B = BoundMatrix(A)
+
+    if (ZM == 1)
+        LatticeToVar = BuildLatticeToVarZonotopes(A, H)
+    end
+
+    if (ZM == 2)
+        LatticeToVar = BuildLatticeToVarMultihomogeneous(A, H)
+    end
+    
+    if (ZM == 3)
+        LatticeToVar = BuildLatticeToVarImplicitization(A, H, Vals)
+    end
+
+    if (length(LatticeToVar) == 0)
+        return RowToLattice,
+            RowToContent,
+            non_mixed_indices,
+            number_of_rows,
+            LatticeToVar
+    end
+
+    for x in p
+        l = length(x)
+
+        tb = [length(findall(x -> x == i, x)) for i = 0:l]
+
+        non_mixed_cell = true
+
+        ib = findlast(x -> x == 0, tb) - 1
+
+        if (length(findall(x -> x == 1, tb)) > 1)
+            non_mixed_cell = false
+        end
+
+        a = zeros(Int64, l)
+
+        for j = 1:l
+            if (x[j] > ib)
+                a[j] = A[j, ib+1]
+            end
+        end
+
+        local base
+
+        if (ZM == 1)
+            base = ntuple(i -> (B[i, x[i]+1]:B[i, x[i]+2]-1), n)
+        end
+
+        if (ZM == 2)
+            base = ntuple(i -> (B[i, x[i]+1]+1:B[i, x[i]+2]), n)
+        end
+        
+        if (ZM == 3)
+            base = ntuple(i -> (B[i, x[i]+1]+1:B[i, x[i]+2]), n)
+        end
+        
+        v = Iterators.product(base...)
+
+        for latticepoint in v
+            if (ZM == 1 || (all(>=(1), H * [latticepoint...]) == true))
+
+                number_of_rows += 1
+
+                if (non_mixed_cell == true)
+                    push!(non_mixed_indices, number_of_rows)
+                end
+
+                RowToLattice = merge(
+                    RowToLattice,
+                    Dict([(number_of_rows, vcat(ib, H * [latticepoint...]))]),
+                )
+
+                RowToContent =
+                    merge(RowToContent, Dict([(number_of_rows, H * a)]))
+
+                if (non_mixed_cell == false)
+                    resultant_degree += 1
+                end
+
+                if (verbose) 
+                    print(H * [latticepoint...])
+                    print("-> x^")
+                    print(H * ([latticepoint...] - a))
+                    print("*F_")
+                    println(ib)
+                
+                end
+                        
+            end
+
+        end
+
+    end
+
+    if (verbose)
+        println()
+        print("The size of the greedy Canny-Emiris matrix is: ")
+        println(number_of_rows)
+
+        print("The degree of the resultant is: ")
+
+        println(resultant_degree)
+
+        println()
+    
+    end
+
+    if (ZM == 1 && verbose)
+
+        print("The sparse resultant is the ratio of the determinants of the returned matrices to the power ")
+
+        println(det(H))
+
+        println()
+
+    end
+
+    return RowToLattice,
+    RowToContent,
+    non_mixed_indices,
+    number_of_rows,
+    LatticeToVar
+
+end
+
+function Implicitization(A::Matrix, H::Matrix, Vals::Vector, verbose)
 
     if (CheckMatrices(A,H) == false)
         return Dict([]), Dict([])
@@ -350,7 +583,51 @@ function Zonotopes(A::Matrix, H::Matrix)
     RowToContent,
     non_mixed_indices,
     number_of_rows,
-    LatticeToVar = RowsCannyEmiris(A, H, 1)
+    LatticeToVar = RowsCannyEmiris(A, H, 3, Vals, verbose)
+    
+
+    n = size(A)[1]
+
+    CannyEmirisMatrix = zeros(Sym, number_of_rows, number_of_rows)
+
+    for i = 1:number_of_rows
+        row_content = get(RowToLattice, i, 2)[1]
+        row_content_support = get(RowToContent, i, 2)
+        lattice_point_row = get(RowToLattice, i, 2)[2:n+1]
+        for j = 1:number_of_rows
+            lattice_point_column = get(RowToLattice, j, 2)[2:n+1]
+            entry = Sym(
+                get(
+                    LatticeToVar,
+                    vcat(
+                        row_content,
+                        lattice_point_column - lattice_point_row +
+                        row_content_support,
+                    ),
+                    0,
+                ),
+            )
+            CannyEmirisMatrix[i, j] = entry
+        end
+    end
+
+    CannyEmirisMinor = CannyEmirisMatrix[non_mixed_indices, non_mixed_indices]
+
+    return CannyEmirisMatrix, CannyEmirisMinor
+
+end
+
+function Zonotopes(A::Matrix, H::Matrix, verbose)
+
+    if (CheckMatrices(A,H) == false)
+        return Dict([]), Dict([])
+    end
+
+    RowToLattice,
+    RowToContent,
+    non_mixed_indices,
+    number_of_rows,
+    LatticeToVar = RowsCannyEmiris(A, H, 1, [], verbose)
 
 
     n = size(A)[1]
@@ -384,7 +661,53 @@ function Zonotopes(A::Matrix, H::Matrix)
 
 end
 
-function Multihomogeneous(A::Matrix, H::Vector)
+function ZonotopesSpecial(A::Matrix, H::Matrix, verbose, f)
+
+    if (CheckMatrices(A,H) == false)
+        return Dict([]), Dict([])
+    end
+    
+    ToDict = PolyToDict(f)
+
+    RowToLattice,
+    RowToContent,
+    non_mixed_indices,
+    number_of_rows,
+    LatticeToVar = RowsCannyEmirisSpecial(A, H, 1, [], verbose, ToDict)
+
+
+    n = size(A)[1]
+
+    CannyEmirisMatrix = zeros(Sym, number_of_rows, number_of_rows)
+
+    for i = 1:number_of_rows
+        row_content = get(RowToLattice, i, 2)[1]
+        row_content_support = get(RowToContent, i, 2)
+        lattice_point_row = get(RowToLattice, i, 2)[2:n+1]
+        for j = 1:number_of_rows
+            lattice_point_column = get(RowToLattice, j, 2)[2:n+1]
+            entry = Sym(
+                get(
+                    LatticeToVar,
+                    vcat(
+                        row_content,
+                        lattice_point_column - lattice_point_row +
+                        row_content_support,
+                    ),
+                    0,
+                ),
+            )
+            CannyEmirisMatrix[i, j] = entry
+        end
+    end
+
+    CannyEmirisMinor = CannyEmirisMatrix[non_mixed_indices, non_mixed_indices]
+
+    return CannyEmirisMatrix, CannyEmirisMinor
+
+end
+
+function Multihomogeneous(A::Matrix, H::Vector, verbose)
 
     A, H = MultihomogeneousEmbedding(A, H)
 
@@ -399,7 +722,7 @@ function Multihomogeneous(A::Matrix, H::Vector)
     RowToContent,
     non_mixed_indices,
     number_of_rows,
-    LatticeToVar = RowsCannyEmiris(A, H, 2)
+    LatticeToVar = RowsCannyEmiris(A, H, 2, [], verbose)
 
     CannyEmirisMatrix = zeros(Sym, number_of_rows, number_of_rows)
 
@@ -430,4 +753,50 @@ function Multihomogeneous(A::Matrix, H::Vector)
 
 end
 
-end # module
+function MultihomogeneousSpecial(A::Matrix, H::Vector, verbose, system)
+
+    A, H = MultihomogeneousEmbedding(A, H)
+
+    if (CheckMatrices(A,H) == false)
+        println("The matrices do not satisfy the bound or dimension restrictions imposed from the greedy algorithm measure.")
+        return Dict([]), Dict([])
+    end
+    
+    ToDict = PolyToDict(system)
+
+    n = size(A)[1]
+
+    RowToLattice,
+    RowToContent,
+    non_mixed_indices,
+    number_of_rows,
+    LatticeToVar = RowsCannyEmirisSpecial(A, H, 2, [], verbose, ToDict)
+
+    CannyEmirisMatrix = zeros(Sym, number_of_rows, number_of_rows)
+
+    for i = 1:number_of_rows
+        row_content = get(RowToLattice, i, 2)[1]
+        row_content_support = get(RowToContent, i, 2)
+        lattice_point_row = get(RowToLattice, i, 2)[2:n+1]
+        for j = 1:number_of_rows
+            lattice_point_column = get(RowToLattice, j, 2)[2:n+1]
+            entry = Sym(
+                get(
+                    LatticeToVar,
+                    vcat(
+                        row_content,
+                        lattice_point_column - lattice_point_row +
+                        row_content_support,
+                    ),
+                    0,
+                ),
+            )
+            CannyEmirisMatrix[i, j] = entry
+        end
+    end
+
+    CannyEmirisMinor = CannyEmirisMatrix[non_mixed_indices, non_mixed_indices]
+
+    return CannyEmirisMatrix, CannyEmirisMinor
+
+end
