@@ -26,6 +26,8 @@ Let's see an example of the use of this function which corresponds to the system
 
 ``` julia
 
+julia> Pkg.add("https://github.com/carleschecanualart/CannyEmiris/")
+
 julia> include("CannyEmiris.jl")
 Main.CannyEmiris
 
@@ -39,7 +41,7 @@ julia> H = [[1,0] [0,1]]
  1  0
  0  1
 
-julia> CE, PM = CannyEmiris.Zonotopes(A,H)
+julia> CE, PM = CannyEmiris.Zonotopes(A,H, true)
 The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: 
 [0, 1]-> x^[0, 1]*F_2
 [0, 2]-> x^[0, 1]*F_1
@@ -73,6 +75,27 @@ julia> PM
  (u_{1, [0, 0]})  (u_{1, [1, 1]})
 ````
 
+One can add the verbose option to false if one wants to avoid all the comments and only get the matrices CE and PM. Moreover, if one wants to specialize the variables to a given polynomial, one can use the following option.
+
+``` julia
+
+julia> @polyvar x[1:2]
+
+julia> f = [x[1]*x[2] - x[1] + x[2] + 1; 2*x[1]*x[2] + 2*x[1] - 2*x[2] + 10; 11*x[1]*x[2] - 2*x[1] + x[2] + 1]
+
+julia> CE, PM = CannyEmiris.ZonotopesSpecial(A,H, false, f)
+8×8 Matrix{SymPy.Sym}:
+  1   1   0  -2  11   0   0   0
+ 10  -2   0   2   2   0   0   0
+  0   0   1   1   0  -2  11   0
+  0   0   0   1   1   0  -2  11
+  1   1   0  -1   1   0   0   0
+  0   0  10  -2   0   2   2   0
+  0   0   1   1   0  -1   1   0
+  0   0   0  10  -2   0   2   2
+
+
+````
 The program will return an error if i) the matrix A or H do not have the desired dimensions, 
 ``` julia
 julia> A = [[1,1] [1,1]]
@@ -85,7 +108,7 @@ julia> H
  1  0
  0  1
 
-julia> CE, PM = CannyEmiris.Zonotopes(A,H)
+julia> CE, PM = CannyEmiris.Zonotopes(A,H,true)
 The matrix of the a_{i,j} does not have the correct dimensions
 (Dict{Any, Any}(), Dict{Any, Any}())
 ````
@@ -97,7 +120,7 @@ julia> H = [[1,0] [0,0]]
  1  0
  0  0
 
-julia> CE, PM = CannyEmiris.Zonotopes(A,H)
+julia> CE, PM = CannyEmiris.Zonotopes(A,H,true)
 The vectors do not correspond to an n-zonotope.
 (Dict{Any, Any}(), Dict{Any, Any}())
 ```
@@ -115,7 +138,7 @@ julia> H = [[1,0] [0,1]]
  1  0
  0  1
 
-julia> CE, PM = CannyEmiris.Zonotopes(A,H)
+julia> CE, PM = CannyEmiris.Zonotopes(A,H,true)
 The matrix of the a_{i,j} does not satisfy a_{i-1,j} <= a_{i,j}
 (Dict{Any, Any}(), Dict{Any, Any}())
 ```
@@ -137,7 +160,7 @@ julia> D = [2 2 1]
 1×3 Matrix{Int64}:
  2  2  1
 
-julia> CE,PM = CannyEmiris.Multihomogeneous(D,N)
+julia> CE,PM = CannyEmiris.Multihomogeneous(D,N,true)
 The rows of the Canny-Emiris matrix x^{b-a(b)}F_{i(b)} are: 
 [2, 1]-> x^[2, 1]*F_2
 [3, 1]-> x^[3, 1]*F_2
@@ -173,7 +196,7 @@ julia> PM
  
  ````
  
- Again, this function will return nothing if the dimension conditions and the order. 
+ Again, this function will return nothing if the dimension conditions and the order. The same option for a specialized system can be used with the command MultihomogeneousSpecial
  
 ## Other functions to call
 
