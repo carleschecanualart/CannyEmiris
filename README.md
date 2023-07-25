@@ -197,6 +197,46 @@ julia> PM
  ````
  
  Again, this function will return nothing if the dimension conditions and the order. The same option for a specialized system can be used with the command MultihomogeneousSpecial
+
+## Examples in applications
+
+In the new version of the paper, we have added two examples of applications of the CannyEmiris formula and its matrices. For the first one, related to the 5 points problem in computer vision, one can use the following function.
+```julia
+# two random sets of 5 points in R^3
+julia> A1 = rand(3,5); A2 = rand(3,5)
+3×5 Matrix{Float64}:
+ 0.312198  0.527294   0.668726  0.758089   0.786979
+ 0.841105  0.0648602  0.379897  0.0906664  0.933115
+ 0.971     0.533749   0.347264  0.833057   0.596144
+
+julia> CE, a = CannyEmiris.MatrixOfTheFivePointsLinearForm(A1,A2)
+784×784 Matrix{SymPy.Sym}:
+                 0    0.948820495696741  …                  0
+  1.00000000000000                    0                     0
+ 0.250372325951262  -0.0236601984110683                     0
+ 0.447515166351192  -0.0777161522448456                     0
+                 0                    0                     0
+                 0                    0  …                  0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0                     0
+                 ⋮                       ⋱  
+                 0                    0  …                  0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0  …                  0
+                 0                    0                     0
+                 0                    0                     0
+                 0                    0     0.447515166351192
+
+ 
+ ````
+
+A similar routine is implemented for the implicitization problem.
+
  
 ## Other functions to call
 
