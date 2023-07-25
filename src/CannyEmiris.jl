@@ -800,3 +800,6 @@ function MultihomogeneousSpecial(A::Matrix, H::Vector, verbose, system)
     return CannyEmirisMatrix, CannyEmirisMinor
 
 end
+
+
+end
