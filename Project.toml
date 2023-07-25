@@ -1,0 +1,11 @@
+name = "CannyEmiris"
+uuid = "42bbd61c-2b03-11ee-be56-0242ac120002"
+authors = ["Carles Checa"]
+version = "0.1.0"
+
+[deps]
+DynamicPolynomials = "7c1d4256-1411-5781-91ec-d7bc3513ac07"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
+
+
