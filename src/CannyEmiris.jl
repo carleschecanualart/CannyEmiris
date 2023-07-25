@@ -803,7 +803,10 @@ end
 
 function MatrixOfTheFivePointsLinearForm(A1::Matrix, A2::Matrix)
     
-    a = rand(1,6)  
+    a = rand(1,6) 
+
+    N = [3; 3]
+    D = [[1, 1] [1, 1] [1, 1] [1, 1] [1, 1] [1, 1] [1, 1]]
 
     @polyvar d[1:6]
 
