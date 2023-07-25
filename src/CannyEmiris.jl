@@ -707,22 +707,6 @@ function ZonotopesSpecial(A::Matrix, H::Matrix, verbose, f)
 
 end
 
-function MatrixOfTheFivePointsLinearForm(A1::Matrix, A2::Matrix)
-    
-    a = rand(1,6)  
-
-    system = [(A1[:,1]'*d[1:3])*(A2[:,1]'*d[4:6]) + A1[:,1]'*A2[:,1] + cross(A1[:,1],d[1:3])'*A2[:,1] + cross(A1[:,1],d[1:3])'*cross(A2[:,1],d[4:6]) + A1[:,1]'*cross(d[4:6],A2[:,1]) ;
-          (A1[:,2]'*d[1:3])*(A2[:,2]'*d[4:6]) + A1[:,2]'*A2[:,2] + cross(A1[:,2],d[1:3])'*A2[:,2] + cross(A1[:,2],d[1:3])'*cross(A2[:,2],d[4:6]) + A1[:,2]'*cross(d[4:6],A2[:,2]) ;
-          (A1[:,3]'*d[1:3])*(A2[:,3]'*d[4:6]) + A1[:,3]'*A2[:,3] + cross(A1[:,3],d[1:3])'*A2[:,3] + cross(A1[:,3],d[1:3])'*cross(A2[:,3],d[4:6]) + A1[:,3]'*cross(d[4:6],A2[:,3]) ;
-          (A1[:,4]'*d[1:3])*(A2[:,4]'*d[4:6]) + A1[:,4]'*A2[:,4] + cross(A1[:,4],d[1:3])'*A2[:,4] + cross(A1[:,4],d[1:3])'*cross(A2[:,4],d[4:6]) + A1[:,4]'*cross(d[4:6],A2[:,4]) ;
-          (A1[:,5]'*d[1:3])*(A2[:,5]'*d[4:6]) + A1[:,5]'*A2[:,5] + cross(A1[:,5],d[1:3])'*A2[:,5] + cross(A1[:,5],d[1:3])'*cross(A2[:,5],d[4:6]) + A1[:,5]'*cross(d[4:6],A2[:,5]) ;1 - d[1]*d[4] - d[2]*d[5] - d[3]*d[6]; a*d]
-
-    CE,PM = MultihomogeneousSpecial(D,N,false, system)
-    
-    return CE, a
-    
-end
-
 function Multihomogeneous(A::Matrix, H::Vector, verbose)
 
     A, H = MultihomogeneousEmbedding(A, H)
